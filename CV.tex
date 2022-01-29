@@ -1,0 +1,252 @@
+\documentclass[a4paper, 12pt]{report}
+
+\usepackage{multicol}
+\usepackage{anyfontsize}
+\usepackage{setspace}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{ifthen}
+\usepackage{xparse}
+
+% for repeat command
+\usepackage{expl3}
+\ExplSyntaxOn
+\cs_new_eq:NN \Repeat \prg_replicate:nn
+\ExplSyntaxOff
+
+% Font
+\usepackage[sfdefault]{roboto}
+\usepackage[T1]{fontenc}
+\usepackage[finnish]{babel}
+
+% Other useful packages
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{lipsum}
+
+% Fixed text height and width
+\usepackage[left=0mm, textwidth=200mm, hcentering, vmargin={40mm,32.5mm}, foot=5mm]{geometry}
+
+% Colors
+\definecolor{xanadu}{RGB}{115,134,120}
+\definecolor{light_xanadu}{RGB}{222,234,228}
+\definecolor{medium_xanadu}{RGB}{167,187,172}
+
+% Framed box
+\setlength{\fboxsep}{1em}
+\newlength{\boxedtextwidth}
+\setlength{\boxedtextwidth}{0.6\textwidth}
+\addtolength{\boxedtextwidth}{-2\fboxsep}
+\addtolength{\boxedtextwidth}{-2\fboxrule}
+\newsavebox{\framedbox}
+\newenvironment*{framed}
+{\begin{center}\begin{lrbox}{\framedbox}\begin{minipage}{\boxedtextwidth}
+ \setlength{\parskip}{4.5pt plus 2pt minus 1pt}}
+{\end{minipage}\end{lrbox}\fbox{\usebox{\framedbox}}\end{center}}
+
+% spacing
+\linespread{1.08}\selectfont
+
+% box width
+\newlength{\leftboxwidth}
+\setlength{\leftboxwidth}{0.35\textwidth}
+
+%second color height
+\newlength{\secondcolorheight}
+\setlength{\secondcolorheight}{-0.2\paperheight}
+
+%name height
+\newlength{\nameheight}
+\setlength{\nameheight}{0.40\secondcolorheight}
+
+\newcommand\leftbox
+{
+\coordinate (A) at (\leftboxwidth, 0);
+\coordinate (C) at ($(current page.south west) + (\leftboxwidth, 0)$);
+\coordinate (B) at ($(current page.north west) + (0, \secondcolorheight)$);
+\draw[xanadu, very thick, fill=xanadu]%, cap=round]
+    (current page.south west) -- (current page.north west)-- ++(A)-- (C);
+\draw[medium_xanadu, very thick, fill=medium_xanadu]%, cap=round]
+    (current page.north west) -- ++(A) -- (B);
+}
+
+%Give your name as an argument
+\newcommand\yourname[1]
+{
+\node[right] at ($(current page.north west) + (0, \nameheight) + (\leftboxwidth + 2em, 0)$) {$\text{\color{xanadu}\fontsize{50}{60}\selectfont #1}$ };
+}
+
+%not rounded picture
+% arg 1: picture name or path
+% arg 2: picture size
+\newcommand\yourpicture[2]
+{
+\node[overlay] at ($(current page.north west)+(0.5\leftboxwidth, 0.5\secondcolorheight)$) {\includegraphics[width=#2\textwidth]{#1}};
+}
+
+%Makes your picture rounded
+% arg 1: picture name or path
+% arg 2: radius of picture
+% arg 3: picture size (cm)
+\newcommand\yourpictureR[3]
+{
+\clip[overlay] ($(current page.north west)+(0.5\leftboxwidth, 0.5\secondcolorheight)$)
+  circle (#2 cm) node {\includegraphics[width=#3\textwidth]{#1}};
+}
+
+% List for skills. 
+% arg 1: name of skill
+% arg 2: skill level.
+\newlist{skills}{itemize}{1}
+\setlist[skills,1]{label={},leftmargin=0pt, topsep=0pt}
+\newcommand\skill[2]
+{
+    \ifnum\numexpr#2<6
+        \ifnum\numexpr#2>-1
+            \item[] #1 \hfill$\Repeat{#2}{\bullet}\Repeat{5-#2}{\circ} $
+        \else
+            \item[] #1 \hfill$\Repeat{5}{\circ}$
+        \fi
+    \else
+    \item[] #1 \hfill$\Repeat{5}{\bullet} $
+    \fi
+}
+
+% List for language skills. 
+% arg 1: language 
+% arg 2: proficiency
+\newlist{langskill}{itemize}{1}
+\setlist[langskill,1]{label={},leftmargin=0pt, noitemsep, topsep=0pt}
+\newcommand\lang[2]
+{
+    \item #1 \hfill #2
+}
+
+% List of references
+\newlist{references}{itemize}{1}
+\setlist[references,1]{label={},leftmargin=0pt, topsep=0pt}
+
+% Titles for left box
+\newcommand\minititle[1]{
+\hrulefill\\
+\hspace*{\fill}\large\textbf{#1}\hspace*{\fill}\vspace{0.25em}\small
+}
+
+% centering for left box
+\newenvironment{minicent}{\\\centering}
+
+% left box
+\newenvironment{leftboxtext}{
+\begin{minipage}[t]{0.75\leftboxwidth}\vspace{5em}\color{white}
+}
+{
+\end{minipage}\qquad
+}
+
+% right text
+\newenvironment{righttext}{
+\qquad\begin{minipage}[t]{0.6\textwidth}
+}
+{
+\end{minipage}
+}
+
+% List for working experience
+% arg 1: Title
+% arg 2: Company
+% arg 3: start date
+% arg 4: end date
+\newlist{workexp}{itemize}{1}
+\setlist[workexp,1]{label={},leftmargin=0pt, itemsep=1pt, topsep=0pt}
+\newcommand\work[4]
+{
+\item \textbf{[#1 - #2]} \emph{#3 - #4}. 
+}
+
+% List for working experience
+% arg 1: Degree
+% arg 2: Field
+% arg 3: School
+% arg 4: start date
+% arg 5: end date
+\newlist{education}{itemize}{1}
+\setlist[education,1]{label={},leftmargin=0pt, itemsep=1pt, topsep=0pt}
+\newcommand\edu[5]
+{
+\item \textbf{[#1, #2 - #3]} \emph{#4 - #5}. 
+}
+
+\begin{document}
+    \thispagestyle{empty}
+    % Picture and background
+    \begin{tikzpicture}[remember picture,overlay]
+        % draws background
+        \leftbox
+        \yourname{Your Name}
+        % if you don't like rounded picture uncomment \yourpicture below and delete \yourpictureR
+        %\yourpicture{placeholder.png}{0.25}
+        \yourpictureR{placeholder.png}{2.5}{0.25}
+    \end{tikzpicture} 
+    \begin{leftboxtext}
+        \minititle{CONTACT}
+        \begin{minicent}
+        foo.bar@mail.com
+
+        020 123 4567
+
+        City
+
+        LinkedIn
+
+        Github
+        \end{minicent}
+
+        \minititle{REFERENCES}
+        \begin{minicent}
+            Name, Company
+
+            Name, Company
+        \end{minicent}
+
+        \minititle{LANGUAGES}
+        \begin{langskill}
+            \lang{English}{Native}
+            \lang{Russian}{Very good}
+        \end{langskill}
+
+        \minititle{SKILLS}
+        \begin{skills}
+            \skill{Math}{5}
+            \skill{\LaTeX}{4}
+            \skill{Linux}{4}
+            \skill{Teamwork}{3}
+            \skill{Wordpress}{2}
+            \skill{C}{2}
+            \skill{Haskell}{2}
+            \skill{Java}{2}
+            \skill{Python}{3}
+            \skill{ReactJS}{2}
+        \end{skills}
+    \end{leftboxtext}
+    \begin{righttext}
+        \subsection*{JOB TITLE OR EDUCATION}
+        \lipsum[1][1-5]
+        \subsection*{WORKING EXPERIENCE}
+            \begin{framed}
+                \begin{workexp}
+                    \work{Job title}{Company}{start date}{end date} \lipsum[2][1-2]
+                    \work{Software Engineer}{Company}{6/2016}{7/2019} Software development tasks.
+                \end{workexp}
+            \end{framed}
+        \subsection*{EDUCATION}
+        \begin{framed}
+            \begin{education}
+                \edu{Degree}{Field}{School}{start date}{end date} \lipsum[3][1-2]
+                \edu{Master of science}{Computer science}{University}{2016}{2018} Minor in mathematics.
+            \end{education}
+        \end{framed}
+        \subsection*{VOLUNTEER EXPERIENCE}
+        \lipsum[4][1-4]
+    \end{righttext}
+\end{document}
